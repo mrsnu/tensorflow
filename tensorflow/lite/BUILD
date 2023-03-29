@@ -512,6 +512,7 @@ cc_library(
         "//tensorflow/lite/experimental/resource",
         "//tensorflow/lite/internal:signature_def",
         "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/kernels:cpu_backend_context",
         "//tensorflow/lite/profiling:platform_profiler",
         "//tensorflow/lite/schema:schema_fbs",
         "//tensorflow/lite/schema:schema_utils",

@@ -17,8 +17,10 @@ limitations under the License.
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "tensorflow/lite/c/common.h"
+
 
 namespace tflite {
 
@@ -34,6 +36,7 @@ class TfLiteInternalBackendContext {
   // Set the maximum number of threads that could be used for parallelizing
   // TfLite computation.
   virtual void SetMaxNumThreads(int max_num_threads) = 0;
+  virtual void SetCpuSet(std::vector<unsigned long> cpu_mask_bits) = 0;
 
   // A context may internally cache prepacked versions of constant tensors for
   // faster computation. This function will clear any caches on the context.
