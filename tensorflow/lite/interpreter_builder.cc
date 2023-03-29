@@ -64,7 +64,6 @@ limitations under the License.
 
 #if defined(__APPLE__)
 #include "TargetConditionals.h"
-#include "interpreter_builder.h"
 #if TARGET_IPHONE_SIMULATOR
 #define TFLITE_IS_MOBILE_PLATFORM
 #elif TARGET_OS_IPHONE

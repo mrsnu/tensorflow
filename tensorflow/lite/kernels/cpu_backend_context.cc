@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/cpu_backend_context.h"
 
-#include <iostream>
 #include <memory>
 
 #ifdef TFLITE_HAVE_CPUINFO

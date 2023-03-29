@@ -23,7 +23,6 @@ limitations under the License.
 
 #include <memory>
 #include <mutex>
-#include <unordered_map>
 
 #include "public/gemmlowp.h"
 #include "ruy/context.h"  // from @ruy
