@@ -562,6 +562,7 @@ class Interpreter {
   /// WARNING: This API is deprecated: prefer using
   /// `InterpreterBuilder::SetNumThreads`, as documented above.
   TfLiteStatus SetNumThreads(int num_threads);
+  TfLiteStatus SetCPUMasks(std::vector<unsigned long> cpu_mask_bits);
 
   /// Allow float16 precision for FP32 calculation when possible.
   /// Default: not allow.

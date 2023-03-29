@@ -64,6 +64,7 @@ limitations under the License.
 
 #if defined(__APPLE__)
 #include "TargetConditionals.h"
+#include "interpreter_builder.h"
 #if TARGET_IPHONE_SIMULATOR
 #define TFLITE_IS_MOBILE_PLATFORM
 #elif TARGET_OS_IPHONE
@@ -702,6 +703,15 @@ TfLiteStatus InterpreterBuilder::SetNumThreads(int num_threads) {
   return kTfLiteOk;
 }
 
+TfLiteStatus InterpreterBuilder::SetCpuMasks(
+    std::vector<unsigned long> mask_bits) {
+  if (mask_bits.size() == 0) {
+    error_reporter_->Report("mask_bits should not be empty.");
+    return kTfLiteError;
+  }
+  cpu_masks_ = mask_bits;
+  return kTfLiteOk;
+}
 TfLiteStatus InterpreterBuilder::operator()(
     std::unique_ptr<Interpreter>* interpreter, int num_threads) {
   TfLiteStatus status = SetNumThreads(num_threads);
@@ -770,6 +780,9 @@ TfLiteStatus InterpreterBuilder::operator()(
 
   // Set num threads after all the subgraphs are added.
   (*interpreter)->SetNumThreads(num_threads_);
+  if (cpu_masks_.size() > 0) {
+    (*interpreter)->SetCPUMasks(cpu_masks_);
+  }
 
   // Set Interpreter options
   (*interpreter)->ApplyOptionsImpl(&options_);

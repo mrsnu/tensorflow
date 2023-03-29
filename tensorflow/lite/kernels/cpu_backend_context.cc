@@ -15,15 +15,17 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/cpu_backend_context.h"
 
+#include <iostream>
 #include <memory>
 
 #ifdef TFLITE_HAVE_CPUINFO
 #include "include/cpuinfo.h"
 #endif
 
+#include "cpu_backend_context.h"
 #include "public/gemmlowp.h"
 #include "ruy/context.h"  // from @ruy
-#include "ruy/path.h"  // from @ruy
+#include "ruy/path.h"     // from @ruy
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/macros.h"
 #include "tensorflow/lite/external_cpu_backend_context.h"
@@ -138,6 +140,8 @@ CpuBackendContext::CpuBackendContext()
 
 CpuBackendContext::~CpuBackendContext() {}
 
+ruy::Context* CpuBackendContext::ruy_context() { return ruy_context_.get(); }
+
 void CpuBackendContext::SetMaxNumThreads(int max_num_threads) {
   const int target_num_threads =
       max_num_threads > -1 ? max_num_threads : kDefaultNumThreadpoolThreads;
@@ -146,7 +150,27 @@ void CpuBackendContext::SetMaxNumThreads(int max_num_threads) {
   gemmlowp_context_->set_max_num_threads(target_num_threads);
 }
 
+void CpuBackendContext::SetCpuSet(std::vector<unsigned long> cpu_mask_bits) {
+  if (cpu_mask_ != cpu_mask_bits) {
+    cpu_mask_ = cpu_mask_bits;
+    // bit count
+    int num_cpus = 0;
+    for (auto& bit : cpu_mask_) {
+      for (int i = 0; i < sizeof(bit); i++) {
+        num_cpus += (bit >> i) & 1;
+      }
+      num_cpus = std::min(max_num_threads_, num_cpus);
+    }
+
+    ruy_context_->set_max_num_threads(num_cpus);
+    ruy_context_->set_cpu_mask(cpu_mask_.data());
+    // TODO: set gemmlowp_context_ cpu_mask
+  }
+}
+
 void CpuBackendContext::SetUseCaching(bool flag) { use_caching_ = flag; }
+
+void CpuBackendContext::ClearCaches() { ruy_context_->ClearPrepackedCache(); }
 
 bool CpuBackendContext::PreferGemmlowpOnX86() {
   bool use_gemmlowp_on_x86 = false;
@@ -167,5 +191,4 @@ bool CpuBackendContext::RuyHasAvxOrAbove() {
   return false;
 #endif
 }
-
 }  // namespace tflite

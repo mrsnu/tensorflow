@@ -95,6 +95,7 @@ class InterpreterBuilder {
   /// Sets the number of CPU threads to use for the interpreter.
   /// Returns kTfLiteOk on success, kTfLiteError on error.
   TfLiteStatus SetNumThreads(int num_threads);
+  TfLiteStatus SetCpuMasks(std::vector<unsigned long> mask_bits);
 
   /// Enables preserving intermediates for debugging. Otherwise, by default
   /// intermediates are undefined due to memory planning and reuse.
@@ -146,6 +147,7 @@ class InterpreterBuilder {
   bool has_flex_op_ = false;
   int num_fp32_tensors_ = 0;
   int num_threads_ = -1;
+  std::vector<unsigned long> cpu_masks_;
   InterpreterOptions options_;
 };
 

@@ -30,6 +30,7 @@ limitations under the License.
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/core/api/profiler.h"
 #include "tensorflow/lite/external_cpu_backend_context.h"
+#include "tensorflow/lite/kernels/cpu_backend_context.h"
 #include "tensorflow/lite/minimal_logging.h"
 #include "tensorflow/lite/stderr_reporter.h"
 #include "tensorflow/lite/util.h"
@@ -41,6 +42,7 @@ limitations under the License.
 
 #if defined(__APPLE__)
 #include "TargetConditionals.h"
+#include "interpreter.h"
 #if TARGET_IPHONE_SIMULATOR
 #define TFLITE_IS_MOBILE_PLATFORM
 #elif TARGET_OS_IPHONE
@@ -105,6 +107,10 @@ Interpreter::Interpreter(ErrorReporter* error_reporter)
   own_external_cpu_backend_context_.reset(new ExternalCpuBackendContext());
   external_contexts_[kTfLiteCpuBackendContext] =
       own_external_cpu_backend_context_.get();
+
+  // Initialize internal backend context for cpu contexts
+  own_external_cpu_backend_context_->set_internal_backend_context(
+      std::make_unique<CpuBackendContext>());
 }
 
 Interpreter::~Interpreter() {
@@ -302,6 +308,27 @@ TfLiteStatus Interpreter::SetNumThreads(int num_threads) {
   return kTfLiteOk;
 }
 
+TfLiteStatus Interpreter::SetCPUMasks(
+    std::vector<unsigned long> cpu_mask_bits) {
+  if (cpu_mask_bits.empty()) {
+    context_->ReportError(context_, "cpu_mask_bits should not be empty.");
+    return kTfLiteError;
+  }
+
+  ExternalCpuBackendContext* cpu_backend_context =
+      own_external_cpu_backend_context_.get();
+
+  if (cpu_backend_context && cpu_backend_context->internal_backend_context()) {
+    cpu_backend_context->internal_backend_context()->SetCpuSet(cpu_mask_bits);
+  } else {
+    context_->ReportError(context_,
+                          "Failed to set CPU affinity mask. CPU backend "
+                          "context is not available.");
+    return kTfLiteError;
+  }
+
+  return kTfLiteOk;
+}
 TfLiteStatus Interpreter::ApplyLazyDelegateProviders() {
   if (lazy_delegate_providers_.empty() || IsFullyDelegated()) return kTfLiteOk;
 
